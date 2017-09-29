@@ -194,7 +194,29 @@ export function convertValueToUnit(unitIn, unitOut, value) {
 function Coordinates(crs, ...coordinates) {
     this._values = new Float64Array(3);
     this.set(crs, ...coordinates);
+
+    Object.defineProperty(this, 'normal',
+        {
+            configurable: true,
+            get: () => {
+                const result = this._normal || this.computeNormal();
+                return result;
+            },
+            set: (normal) => {
+                this._normal = normal;
+            },
+        });
 }
+
+Coordinates.prototype.computeNormal = function computeNormal() {
+    // In globe mode, (EPSG:4978), coordinate has been converted and normal is already computed.
+    if (this.crs == '4978') {
+        throw (new Error('Should not happend'));
+    }
+    // In planar mode, normal is the up vector.
+    this._normal = THREE.Object3D.DefaultUp;
+    return this._normal;
+};
 
 Coordinates.prototype.set = function set(crs, ...coordinates) {
     _crsToUnitWithError(crs);
